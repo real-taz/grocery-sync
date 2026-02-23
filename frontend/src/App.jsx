@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
-// --- 1. TRANSLATIONS ---
 const translations = {
-  en: { appTitle: 'GrocerySync', products: 'Products', manageLists: 'Manage Lists', shoppingMode: 'Shopping Mode', settings: 'Settings', adminPanel: 'Admin Panel', masterProducts: 'Master Products List', addProduct: 'Add Product', editProduct: 'Edit Product', import: 'Import Data', export: 'Export Data', tapToEdit: 'Tap to edit', pickList: 'Pick a List', createList: 'Create List', newListPlaceholder: 'e.g., Weekend BBQ', itemsTotal: 'items total', itemsRemaining: 'remaining', back: '← Back', scanBarcode: '📷 Scan Barcode', scanToAdd: '📷 Scan to Add', scanToMark: 'Scan item to mark as bought', save: 'Save', cancel: 'Cancel', update: 'Update', allowedUnits: 'Allowed Units', name: 'Name', category: 'Category', barcode: 'Barcode', picture: 'Picture', errNoPc: 'This product does not support pieces (Pc).', uncategorized: 'Uncategorized', categorySort: 'Manage Aisles & Categories', addCategory: 'Add Category', login: 'Login', logout: 'Logout', username: 'Username', password: 'Password', createUser: 'Create User', changePassword: 'Change Password', newPassword: 'New Password', editUser: 'Edit User Permissions' },
-  es: { appTitle: 'SúperSync', products: 'Productos', manageLists: 'Listas', shoppingMode: 'De Compras', settings: 'Ajustes', adminPanel: 'Panel de Admin', masterProducts: 'Lista Maestra', addProduct: 'Agregar Producto', editProduct: 'Editar Producto', import: 'Importar Datos', export: 'Exportar Datos', tapToEdit: 'Toca para editar', pickList: 'Elige una Lista', createList: 'Crear Lista', newListPlaceholder: 'Ej. Asado', itemsTotal: 'artículos en total', itemsRemaining: 'restantes', back: '← Volver', scanBarcode: '📷 Escanear Código', scanToAdd: '📷 Escanear para Añadir', scanToMark: 'Escanea para marcar comprado', save: 'Guardar', cancel: 'Cancelar', update: 'Actualizar', allowedUnits: 'Unidades Permitidas', name: 'Nombre', category: 'Categoría', barcode: 'Código de barras', picture: 'Imagen', errNoPc: 'Este producto no admite piezas (Pc).', uncategorized: 'Sin Categoría', categorySort: 'Gestionar Pasillos y Categorías', addCategory: 'Nueva Categoría', login: 'Iniciar Sesión', logout: 'Cerrar Sesión', username: 'Usuario', password: 'Contraseña', createUser: 'Crear Usuario', changePassword: 'Cambiar Contraseña', newPassword: 'Nueva Contraseña', editUser: 'Editar Permisos' },
-  de: { appTitle: 'EinkaufSync', products: 'Produkte', manageLists: 'Listen verwalten', shoppingMode: 'Einkaufsmodus', settings: 'Einstellungen', adminPanel: 'Admin-Bereich', masterProducts: 'Produktstamm', addProduct: 'Produkt hinzufügen', editProduct: 'Produkt bearbeiten', import: 'Daten importieren', export: 'Daten exportieren', tapToEdit: 'Zum Bearbeiten tippen', pickList: 'Liste wählen', createList: 'Liste erstellen', newListPlaceholder: 'z.B. Wochenende', itemsTotal: 'Artikel insgesamt', itemsRemaining: 'verbleibend', back: '← Zurück', scanBarcode: '📷 Barcode scannen', scanToAdd: '📷 Scannen + Hinzufügen', scanToMark: 'Scannen zum Abhaken', save: 'Speichern', cancel: 'Abbrechen', update: 'Aktualisieren', allowedUnits: 'Erlaubte Einheiten', name: 'Name', category: 'Kategorie', barcode: 'Barcode', picture: 'Bild', errNoPc: 'Dieses Produkt unterstützt keine Stückzahl (Pc).', uncategorized: 'Ohne Kategorie', categorySort: 'Kategorien verwalten', addCategory: 'Kategorie hinzufügen', login: 'Anmelden', logout: 'Abmelden', username: 'Benutzername', password: 'Passwort', createUser: 'Benutzer erstellen', changePassword: 'Passwort ändern', newPassword: 'Neues Passwort', editUser: 'Benutzer bearbeiten' },
-  he: { appTitle: 'קניותSync', products: 'מוצרים', manageLists: 'ניהול רשימות', shoppingMode: 'מצב קניות', settings: 'הגדרות', adminPanel: 'ניהול מערכת', masterProducts: 'רשימת מוצרים', addProduct: 'הוסף מוצר', editProduct: 'ערוך מוצר', import: 'ייבוא נתונים', export: 'ייצוא נתונים', tapToEdit: 'הקש לעריכה', pickList: 'בחר רשימה', createList: 'צור רשימה', newListPlaceholder: 'לדוגמה, על האש', itemsTotal: 'פריטים בסך הכל', itemsRemaining: 'נותרו', back: '← חזור', scanBarcode: '📷 סרוק ברקוד', scanToAdd: '📷 סרוק להוספה', scanToMark: 'סרוק כדי לסמן כנקנה', save: 'שמור', cancel: 'ביטול', update: 'עדכן', allowedUnits: 'יחידות מותרות', name: 'שם', category: 'קטגוריה', barcode: 'ברקוד', picture: 'תמונה', errNoPc: 'מוצר זה אינו תומך ביחידות (Pc).', uncategorized: 'ללא קטגוריה', categorySort: 'ניהול קטגוריות ומעברים', addCategory: 'הוסף קטגוריה', login: 'התחבר', logout: 'התנתק', username: 'שם משתמש', password: 'סיסמה', createUser: 'צור משתמש', changePassword: 'שנה סיסמה', newPassword: 'סיסמה חדשה', editUser: 'ערוך הרשאות משתמש' }
+  en: { appTitle: 'GrocerySync', products: 'Products', manageLists: 'Manage Lists', shoppingMode: 'Shopping Mode', settings: 'Settings', adminPanel: 'Admin Panel', masterProducts: 'Master Products List', addProduct: 'Add Product', editProduct: 'Edit Product', import: 'Import Data', export: 'Export Data', tapToEdit: 'Tap to edit', pickList: 'Pick a List', createList: 'Create List', newListPlaceholder: 'e.g., Weekend BBQ', itemsTotal: 'items total', itemsRemaining: 'remaining', back: '← Back', scanBarcode: '📷 Scan Barcode', scanToAdd: '📷 Scan to Add', scanToMark: 'Scan item to mark as bought', save: 'Save', cancel: 'Cancel', update: 'Update', allowedUnits: 'Allowed Units', name: 'Name', category: 'Category', barcode: 'Barcode', picture: 'Picture', errNoPc: 'This product does not support pieces (Pc).', uncategorized: 'Uncategorized', categorySort: 'Manage Aisles & Categories', addCategory: 'Add Category', login: 'Login', logout: 'Logout', username: 'Username', password: 'Password', createUser: 'Create User', changePassword: 'Change Password', newPassword: 'New Password', editUser: 'Edit User Permissions', sortByName: 'Sort by Name', sortByCategory: 'Sort by Category' },
+  es: { appTitle: 'SúperSync', products: 'Productos', manageLists: 'Listas', shoppingMode: 'De Compras', settings: 'Ajustes', adminPanel: 'Panel de Admin', masterProducts: 'Lista Maestra', addProduct: 'Agregar Producto', editProduct: 'Editar Producto', import: 'Importar Datos', export: 'Exportar Datos', tapToEdit: 'Toca para editar', pickList: 'Elige una Lista', createList: 'Crear Lista', newListPlaceholder: 'Ej. Asado', itemsTotal: 'artículos en total', itemsRemaining: 'restantes', back: '← Volver', scanBarcode: '📷 Escanear Código', scanToAdd: '📷 Escanear para Añadir', scanToMark: 'Escanea para marcar comprado', save: 'Guardar', cancel: 'Cancelar', update: 'Actualizar', allowedUnits: 'Unidades Permitidas', name: 'Nombre', category: 'Categoría', barcode: 'Código de barras', picture: 'Imagen', errNoPc: 'Este producto no admite piezas (Pc).', uncategorized: 'Sin Categoría', categorySort: 'Gestionar Pasillos y Categorías', addCategory: 'Nueva Categoría', login: 'Iniciar Sesión', logout: 'Cerrar Sesión', username: 'Usuario', password: 'Contraseña', createUser: 'Crear Usuario', changePassword: 'Cambiar Contraseña', newPassword: 'Nueva Contraseña', editUser: 'Editar Permisos', sortByName: 'Ordenar por Nombre', sortByCategory: 'Ordenar por Categoría' },
+  de: { appTitle: 'EinkaufSync', products: 'Produkte', manageLists: 'Listen verwalten', shoppingMode: 'Einkaufsmodus', settings: 'Einstellungen', adminPanel: 'Admin-Bereich', masterProducts: 'Produktstamm', addProduct: 'Produkt hinzufügen', editProduct: 'Produkt bearbeiten', import: 'Daten importieren', export: 'Daten exportieren', tapToEdit: 'Zum Bearbeiten tippen', pickList: 'Liste wählen', createList: 'Liste erstellen', newListPlaceholder: 'z.B. Wochenende', itemsTotal: 'Artikel insgesamt', itemsRemaining: 'verbleibend', back: '← Zurück', scanBarcode: '📷 Barcode scannen', scanToAdd: '📷 Scannen + Hinzufügen', scanToMark: 'Scannen zum Abhaken', save: 'Speichern', cancel: 'Abbrechen', update: 'Aktualisieren', allowedUnits: 'Erlaubte Einheiten', name: 'Name', category: 'Kategorie', barcode: 'Barcode', picture: 'Bild', errNoPc: 'Dieses Produkt unterstützt keine Stückzahl (Pc).', uncategorized: 'Ohne Kategorie', categorySort: 'Kategorien verwalten', addCategory: 'Kategorie hinzufügen', login: 'Anmelden', logout: 'Abmelden', username: 'Benutzername', password: 'Passwort', createUser: 'Benutzer erstellen', changePassword: 'Passwort ändern', newPassword: 'Neues Passwort', editUser: 'Benutzer bearbeiten', sortByName: 'Nach Name sortieren', sortByCategory: 'Nach Kategorie sortieren' },
+  he: { appTitle: 'קניותSync', products: 'מוצרים', manageLists: 'ניהול רשימות', shoppingMode: 'מצב קניות', settings: 'הגדרות', adminPanel: 'ניהול מערכת', masterProducts: 'רשימת מוצרים', addProduct: 'הוסף מוצר', editProduct: 'ערוך מוצר', import: 'ייבוא נתונים', export: 'ייצוא נתונים', tapToEdit: 'הקש לעריכה', pickList: 'בחר רשימה', createList: 'צור רשימה', newListPlaceholder: 'לדוגמה, על האש', itemsTotal: 'פריטים בסך הכל', itemsRemaining: 'נותרו', back: '← חזור', scanBarcode: '📷 סרוק ברקוד', scanToAdd: '📷 סרוק להוספה', scanToMark: 'סרוק כדי לסמן כנקנה', save: 'שמור', cancel: 'ביטול', update: 'עדכן', allowedUnits: 'יחידות מותרות', name: 'שם', category: 'קטגוריה', barcode: 'ברקוד', picture: 'תמונה', errNoPc: 'מוצר זה אינו תומך ביחידות (Pc).', uncategorized: 'ללא קטגוריה', categorySort: 'ניהול קטגוריות ומעברים', addCategory: 'הוסף קטגוריה', login: 'התחבר', logout: 'התנתק', username: 'שם משתמש', password: 'סיסמה', createUser: 'צור משתמש', changePassword: 'שנה סיסמה', newPassword: 'סיסמה חדשה', editUser: 'ערוך הרשאות משתמש', sortByName: 'מיין לפי שם', sortByCategory: 'מיין לפי קטגוריה' }
 };
 
 const themes = {
@@ -66,7 +65,6 @@ const ProductGridItem = ({ p, existingItem, onUpdate, onRemove, theme, canEditLi
           <div className="flex items-center justify-center gap-2">
               <button disabled={!canEditList} onClick={handleDecrement} className={`w-12 h-12 rounded-full ${qty > 0 ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-400'} text-3xl font-bold flex items-center justify-center pb-1 disabled:opacity-50`}>−</button>
               <input type="number" disabled={!canEditList} value={qty} onBlur={(e) => commitChange(Math.max(0, Number(e.target.value)), unit)} onChange={(e) => setQty(e.target.value)} className="w-16 text-center border-b-2 bg-transparent outline-none dark:border-gray-500 font-bold text-xl [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:opacity-50" />
-              {/* + Button is now permanently green */}
               <button disabled={!canEditList} onClick={handleIncrement} className={`w-12 h-12 rounded-full bg-green-600 text-white text-3xl font-bold hover:bg-green-700 flex items-center justify-center pb-1 disabled:opacity-50`}>+</button>
           </div>
       </div>
@@ -83,6 +81,7 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => JSON.parse(localStorage.getItem('theme_dark')) ?? true);
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('theme_color') || 'green');
   const [lang, setLang] = useState(() => localStorage.getItem('theme_lang') || 'en');
+  const [listSortMode, setListSortMode] = useState(() => localStorage.getItem('theme_listSort') || 'category'); // New sorting state
   
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -110,7 +109,6 @@ export default function App() {
   const theme = themes[accentColor] || themes.green;
   const isRtl = lang === 'he';
 
-  // Strict Booleans for RBAC UI
   const isAdmin = user?.is_admin === 1;
   const canCreateProd = isAdmin || user?.perm_products_create === 1;
   const canEditProd = isAdmin || user?.perm_products_edit === 1;
@@ -146,10 +144,13 @@ export default function App() {
   };
 
   useEffect(() => {
-    localStorage.setItem('theme_dark', JSON.stringify(isDarkMode)); localStorage.setItem('theme_color', accentColor); localStorage.setItem('theme_lang', lang);
+    localStorage.setItem('theme_dark', JSON.stringify(isDarkMode)); 
+    localStorage.setItem('theme_color', accentColor); 
+    localStorage.setItem('theme_lang', lang);
+    localStorage.setItem('theme_listSort', listSortMode);
     if (isDarkMode) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark');
     document.dir = isRtl ? 'rtl' : 'ltr';
-  }, [isDarkMode, accentColor, lang, isRtl]);
+  }, [isDarkMode, accentColor, lang, isRtl, listSortMode]);
 
   useEffect(() => {
     const handleKeyDown = (e) => { if (e.key === 'Escape') { setEditingProduct(null); setEditingAdminUser(null); setIsScanning(false); setShoppingScanner(false); setListEditScanner(false); } };
@@ -263,12 +264,35 @@ export default function App() {
       fetchData(); setEditingAdminUser(null);
   };
 
-  const safeLists = Array.isArray(lists) ? lists : []; const safeProducts = Array.isArray(products) ? products : []; const safeCurrentItems = Array.isArray(currentListItems) ? currentListItems : []; const safeCategories = Array.isArray(categories) ? categories : [];
-  const groupedItems = safeCurrentItems.reduce((acc, item) => { const cat = item.product_group || t('uncategorized'); if (!acc[cat]) acc[cat] = []; acc[cat].push(item); return acc; }, {});
+  const safeLists = Array.isArray(lists) ? lists : []; 
+  const safeProducts = Array.isArray(products) ? products : []; 
+  const safeCurrentItems = Array.isArray(currentListItems) ? currentListItems : []; 
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  
   const catNamesOrder = safeCategories.map(c => c.name);
+
+  // Sort products for Edit List View
+  const sortedProductsForEdit = [...safeProducts].sort((a, b) => {
+      if (listSortMode === 'name') {
+          return a.name.localeCompare(b.name);
+      } else {
+          const catA = a.product_group || t('uncategorized');
+          const catB = b.product_group || t('uncategorized');
+          if (catA !== catB) {
+              if (catA === t('uncategorized')) return 1;
+              if (catB === t('uncategorized')) return -1;
+              const indexA = catNamesOrder.indexOf(catA);
+              const indexB = catNamesOrder.indexOf(catB);
+              return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+          }
+          return a.name.localeCompare(b.name);
+      }
+  });
+
+  // Group items for Active Shopping View
+  const groupedItems = safeCurrentItems.reduce((acc, item) => { const cat = item.product_group || t('uncategorized'); if (!acc[cat]) acc[cat] = []; acc[cat].push(item); return acc; }, {});
   const sortedCategories = Object.keys(groupedItems).sort((a, b) => { if (a === t('uncategorized')) return 1; if (b === t('uncategorized')) return -1; const indexA = catNamesOrder.indexOf(a); const indexB = catNamesOrder.indexOf(b); return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB); });
 
-  // LOGIN SCREEN
   if (!token) {
       return (
           <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -316,7 +340,6 @@ export default function App() {
         {activeTab === 'admin' && isAdmin ? (
             <section className="max-w-5xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border dark:border-gray-700 mt-2">
                 <h2 className="text-3xl font-bold mb-8 border-b pb-4 text-purple-600">{t('adminPanel')}</h2>
-                
                 <form onSubmit={handleCreateUser} className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl mb-8 border dark:border-gray-600">
                     <h3 className="text-xl font-bold mb-4">{t('createUser')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -440,7 +463,7 @@ export default function App() {
         {/* --- PRODUCTS --- */}
         {activeTab === 'products' && showProductsTab ? (
           <section>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b pb-2 dark:border-gray-700">
                 <h2 className="text-2xl font-bold">{t('masterProducts')}</h2>
                 {canCreateProd ? <button onClick={() => openProductModal({})} className={`${theme.primary} text-white px-6 py-2 rounded-lg shadow font-medium hover:opacity-90`}>+ {t('addProduct')}</button> : null}
             </div>
@@ -538,11 +561,18 @@ export default function App() {
         {/* --- LIST GRID EDITOR --- */}
         {activeTab === 'lists' && editingList ? (
           <section>
-            <div className="flex justify-between items-center mb-6">
-                <button onClick={() => {setEditingList(null); fetchData();}} className={`${theme.text} font-medium`}>{t('back')}</button>
-                {canEditList ? <button onClick={() => setListEditScanner(!listEditScanner)} className={`${theme.primary} text-white px-4 py-2 rounded shadow hover:opacity-90`}>{t('scanToAdd')}</button> : null}
+            <button onClick={() => {setEditingList(null); fetchData();}} className={`${theme.text} font-medium mb-4`}>{t('back')}</button>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b pb-2 dark:border-gray-700">
+                <h2 className="text-2xl font-bold">{editingList.name}</h2>
+                <div className="flex gap-2">
+                    <select value={listSortMode} onChange={(e) => setListSortMode(e.target.value)} className="border p-2 rounded shadow-sm dark:bg-gray-700 dark:border-gray-600 outline-none">
+                        <option value="category">{t('sortByCategory')}</option>
+                        <option value="name">{t('sortByName')}</option>
+                    </select>
+                    {canEditList ? <button onClick={() => setListEditScanner(!listEditScanner)} className={`${theme.primary} text-white px-4 py-2 rounded shadow hover:opacity-90`}>{t('scanToAdd')}</button> : null}
+                </div>
             </div>
-            <h2 className="text-2xl font-bold mb-6 border-b pb-2 dark:border-gray-700">{editingList.name}</h2>
+            
             {listEditScanner ? (
                 <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg border">
                     <h3 className="text-center font-bold mb-2">Scan item to instantly add 1 Pc</h3>
@@ -550,7 +580,7 @@ export default function App() {
                 </div>
             ) : null}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {safeProducts.map(p => (
+              {sortedProductsForEdit.map(p => (
                   <ProductGridItem key={p.id} p={p} existingItem={safeCurrentItems.find(i => Number(i.id) === Number(p.id))} onUpdate={handleUpdateListItem} onRemove={handleRemoveListItem} theme={theme} canEditList={canEditList} />
               ))}
             </div>
@@ -580,7 +610,7 @@ export default function App() {
         {/* --- ACTIVE SHOPPING --- */}
         {activeTab === 'shopping' && shoppingList ? (
            <section>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 border-b pb-2 dark:border-gray-700">
               <button onClick={() => {setShoppingList(null); fetchData();}} className={`${theme.text} font-medium`}>{t('back')}</button>
               <h2 className="text-2xl font-bold">{shoppingList.name}</h2>
               <button onClick={() => setShoppingScanner(!shoppingScanner)} className={`${theme.primary} text-white px-4 py-2 rounded shadow hover:opacity-90`}>{t('scanBarcode')}</button>
