@@ -37,7 +37,6 @@ const initDb = () => {
         CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, sort_order INTEGER DEFAULT 0);
     `);
     
-    // Non-destructive DB Schema Migrations
     try { db.exec("ALTER TABLE lists ADD COLUMN picture_url TEXT"); } catch(e){}
     try { db.exec("ALTER TABLE products ADD COLUMN allowed_units TEXT DEFAULT 'Pc,g,Kg'"); } catch(e){}
     try { db.exec("ALTER TABLE users ADD COLUMN perm_products_create BOOLEAN DEFAULT 0"); } catch(e){}
@@ -97,12 +96,36 @@ app.post('/api/users', reqAdmin, (req, res) => {
         res.json({ success: true });
     } catch(e) { res.status(500).json({error: e.message}); }
 });
+
+// SAFE UPDATE: Prevent removing the last admin
 app.put('/api/users/:id', reqAdmin, (req, res) => {
-    if (req.body.password) db.prepare('UPDATE users SET password = ? WHERE id = ?').run(bcrypt.hashSync(req.body.password, 10), req.params.id);
-    db.prepare('UPDATE users SET is_admin=?, perm_products_create=?, perm_products_edit=?, perm_products_delete=?, perm_lists_create=?, perm_lists_edit=?, perm_lists_delete=?, perm_categories=? WHERE id=?').run(req.body.is_admin?1:0, req.body.perm_products_create?1:0, req.body.perm_products_edit?1:0, req.body.perm_products_delete?1:0, req.body.perm_lists_create?1:0, req.body.perm_lists_edit?1:0, req.body.perm_lists_delete?1:0, req.body.perm_categories?1:0, req.params.id);
+    const targetUserId = req.params.id;
+    const willBeAdmin = req.body.is_admin ? 1 : 0;
+    
+    if (!willBeAdmin) {
+        const targetUser = db.prepare('SELECT is_admin FROM users WHERE id = ?').get(targetUserId);
+        if (targetUser && targetUser.is_admin === 1) {
+            const adminCount = db.prepare('SELECT COUNT(*) as count FROM users WHERE is_admin = 1').get().count;
+            if (adminCount <= 1) return res.status(400).json({ error: "Action blocked: You cannot remove the last Admin user." });
+        }
+    }
+
+    if (req.body.password) db.prepare('UPDATE users SET password = ? WHERE id = ?').run(bcrypt.hashSync(req.body.password, 10), targetUserId);
+    db.prepare('UPDATE users SET is_admin=?, perm_products_create=?, perm_products_edit=?, perm_products_delete=?, perm_lists_create=?, perm_lists_edit=?, perm_lists_delete=?, perm_categories=? WHERE id=?').run(willBeAdmin, req.body.perm_products_create?1:0, req.body.perm_products_edit?1:0, req.body.perm_products_delete?1:0, req.body.perm_lists_create?1:0, req.body.perm_lists_edit?1:0, req.body.perm_lists_delete?1:0, req.body.perm_categories?1:0, targetUserId);
     res.json({ success: true });
 });
-app.delete('/api/users/:id', reqAdmin, (req, res) => { db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id); res.json({ success: true }); });
+
+// SAFE DELETE: Prevent deleting the last admin
+app.delete('/api/users/:id', reqAdmin, (req, res) => {
+    const targetUserId = req.params.id;
+    const targetUser = db.prepare('SELECT is_admin FROM users WHERE id = ?').get(targetUserId);
+    if (targetUser && targetUser.is_admin === 1) {
+        const adminCount = db.prepare('SELECT COUNT(*) as count FROM users WHERE is_admin = 1').get().count;
+        if (adminCount <= 1) return res.status(400).json({ error: "Action blocked: You cannot delete the last Admin user." });
+    }
+    db.prepare('DELETE FROM users WHERE id = ?').run(targetUserId); 
+    res.json({ success: true }); 
+});
 
 // --- CATEGORIES API ---
 app.get('/api/categories', (req, res) => res.json(db.prepare('SELECT * FROM categories ORDER BY sort_order ASC').all()));
