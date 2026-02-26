@@ -83,7 +83,6 @@ export default function App() {
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('theme_color') || 'green');
   const [lang, setLang] = useState(() => localStorage.getItem('theme_lang') || 'en');
   
-  // List Filters & Sorting
   const [listSortMode, setListSortMode] = useState(() => localStorage.getItem('theme_listSort') || 'category'); 
   const [listSearchQuery, setListSearchQuery] = useState(''); 
   const [listCategoryFilter, setListCategoryFilter] = useState(''); 
@@ -222,14 +221,12 @@ export default function App() {
     setListSearchQuery(''); setListCategoryFilter(''); setListAddedFilter(false);
   };
 
-  // PERSONAL SETTINGS
   const handlePasswordChange = async (e) => {
       e.preventDefault();
       await apiFetch('/api/change-password', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({newPassword: e.target.newPassword.value}) });
       alert("Password changed successfully!"); e.target.reset();
   };
 
-  // CATEGORY ACTIONS
   const handleAddCategory = async (e) => { e.preventDefault(); await apiFetch('/api/categories', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name: e.target.catName.value}) }); e.target.reset(); fetchData(); };
   const moveCategory = async (index, direction) => {
     const newOrder = [...categories]; const temp = newOrder[index]; newOrder[index] = newOrder[index + direction]; newOrder[index + direction] = temp;
@@ -237,11 +234,9 @@ export default function App() {
   };
   const handleDeleteCategory = async (id, name) => { if(window.confirm(`Delete "${name}"?`)) { await apiFetch(`/api/categories/${id}`, { method: 'DELETE' }); fetchData(); } };
 
-  // EXPORT / IMPORT
   const handleExportJSON = async () => { try { const data = await apiFetch('/api/export').then(res => res.json()); const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); const dlAnchorElem = document.createElement('a'); dlAnchorElem.setAttribute("href", dataStr); dlAnchorElem.setAttribute("download", "grocery_data_backup.json"); dlAnchorElem.click(); } catch(e) {} };
   const handleImportJSON = async (e) => { if (!e.target.files[0]) return; const formData = new FormData(); formData.append('file', e.target.files[0]); await apiFetch('/api/import', { method: 'POST', body: formData }); fetchData(); alert("Imported!"); };
 
-  // PRODUCT ACTIONS
   const handleSaveProduct = async (e) => {
     e.preventDefault(); if(selectedUnits.length === 0) { alert("Select at least one Allowed Unit!"); return; }
     const formData = new FormData(formRef.current); formData.set('barcode', scannedBarcode); formData.set('allowed_units', selectedUnits.join(',')); if(removePicture) formData.append('remove_picture', 'true');
@@ -249,7 +244,6 @@ export default function App() {
   };
   const openProductModal = (p) => { setEditingProduct(p); setScannedBarcode(p.barcode || ''); setSelectedUnits(p.allowed_units ? p.allowed_units.split(',') : ['Pc', 'g', 'Kg']); setRemovePicture(false); };
 
-  // LIST ACTIONS
   const handleCreateList = async (e) => { e.preventDefault(); await apiFetch('/api/lists', { method: 'POST', body: new FormData(e.target) }); fetchData(); e.target.reset(); };
   const loadListItems = async (listId) => { try { setCurrentListItems(await apiFetch(`/api/lists/${listId}/items`).then(res => res.json())); } catch (e) {} };
   const handleUpdateListItem = async (productId, quantity, unit) => { await apiFetch(`/api/lists/${editingList.id}/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id: productId, quantity, unit }) }); loadListItems(editingList.id); fetchData(); };
@@ -261,7 +255,7 @@ export default function App() {
     if (socketInstance) socketInstance.emit('toggle_item_status', { listId: shoppingList.id, productId, isBought: newStatus });
   };
 
-  // ADMIN ACTIONS
+  // ADMIN ACTIONS (With Error Catching for the Last Admin block)
   const handleCreateUser = async (e) => {
       e.preventDefault(); const form = new FormData(e.target);
       await apiFetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: form.get('username'), password: form.get('password'), is_admin: form.get('is_admin'), perm_products_create: form.get('perm_products_create'), perm_products_edit: form.get('perm_products_edit'), perm_products_delete: form.get('perm_products_delete'), perm_lists_create: form.get('perm_lists_create'), perm_lists_edit: form.get('perm_lists_edit'), perm_lists_delete: form.get('perm_lists_delete'), perm_categories: form.get('perm_categories') }) });
@@ -269,8 +263,16 @@ export default function App() {
   };
   const handleUpdateUser = async (e) => {
       e.preventDefault(); const form = new FormData(e.target);
-      await apiFetch(`/api/users/${editingAdminUser.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: form.get('password'), is_admin: form.get('is_admin'), perm_products_create: form.get('perm_products_create'), perm_products_edit: form.get('perm_products_edit'), perm_products_delete: form.get('perm_products_delete'), perm_lists_create: form.get('perm_lists_create'), perm_lists_edit: form.get('perm_lists_edit'), perm_lists_delete: form.get('perm_lists_delete'), perm_categories: form.get('perm_categories') }) });
+      const res = await apiFetch(`/api/users/${editingAdminUser.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: form.get('password'), is_admin: form.get('is_admin'), perm_products_create: form.get('perm_products_create'), perm_products_edit: form.get('perm_products_edit'), perm_products_delete: form.get('perm_products_delete'), perm_lists_create: form.get('perm_lists_create'), perm_lists_edit: form.get('perm_lists_edit'), perm_lists_delete: form.get('perm_lists_delete'), perm_categories: form.get('perm_categories') }) });
+      if (!res.ok) { const data = await res.json(); alert(data.error || "Failed to update user."); return; }
       fetchData(); setEditingAdminUser(null);
+  };
+  const handleDeleteUser = async (uId, uName) => {
+      if(window.confirm(`Delete ${uName}?`)){ 
+          const res = await apiFetch(`/api/users/${uId}`, {method:'DELETE'}); 
+          if (!res.ok) { const data = await res.json(); alert(data.error || "Failed to delete user."); }
+          else fetchData(); 
+      }
   };
 
   const safeLists = Array.isArray(lists) ? lists : []; 
@@ -280,7 +282,6 @@ export default function App() {
   
   const catNamesOrder = safeCategories.map(c => c.name);
 
-  // Advanced Sorting & Filtering for Edit List View
   const sortedProductsForEdit = [...safeProducts]
     .filter(p => p.name.toLowerCase().includes(listSearchQuery.toLowerCase()))
     .filter(p => {
@@ -310,7 +311,6 @@ export default function App() {
       }
   });
 
-  // Group items for Active Shopping View
   const groupedItems = safeCurrentItems.reduce((acc, item) => { const cat = item.product_group || t('uncategorized'); if (!acc[cat]) acc[cat] = []; acc[cat].push(item); return acc; }, {});
   const sortedCategories = Object.keys(groupedItems).sort((a, b) => { if (a === t('uncategorized')) return 1; if (b === t('uncategorized')) return -1; const indexA = catNamesOrder.indexOf(a); const indexB = catNamesOrder.indexOf(b); return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB); });
 
@@ -393,7 +393,7 @@ export default function App() {
                                     <td className="p-2">{u.perm_categories ? '✅' : '❌'}</td>
                                     <td className="p-2 flex gap-2">
                                         <button onClick={() => setEditingAdminUser(u)} className="text-blue-500 hover:underline">Edit</button>
-                                        <button onClick={async () => { if(window.confirm(`Delete ${u.username}?`)){ await apiFetch(`/api/users/${u.id}`, {method:'DELETE'}); fetchData(); } }} className="text-red-500 hover:underline disabled:opacity-30" disabled={u.username === 'admin'}>Delete</button>
+                                        <button onClick={() => handleDeleteUser(u.id, u.username)} className="text-red-500 hover:underline disabled:opacity-30">Delete</button>
                                     </td>
                                 </tr>
                             ))}
